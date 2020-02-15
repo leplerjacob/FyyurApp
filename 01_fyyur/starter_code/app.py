@@ -16,7 +16,7 @@ from forms import *
 # App Config.
 #----------------------------------------------------------------------------#
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static')
 moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
