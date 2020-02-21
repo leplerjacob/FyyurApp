@@ -47,10 +47,10 @@ class Venue(db.Model):
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
     genres = db.Column(ARRAY(String))
-    shows = db.relationship('Show', back_populates='Venue', lazy=True)
+    shows = db.relationship('Show', backref='Venue', lazy=True)
     
 
-    def __init__(self,name,city,state,address,phone,image_link,facebook_link,genres, shows):
+    def __init__(self,name,city,state,address,phone,image_link,facebook_link,genres):
       self.name = name
       self.city = city
       self.state = state
@@ -58,9 +58,8 @@ class Venue(db.Model):
       self.phone = phone
       self.image_link = image_link
       self.facebook_link = facebook_link
-      self.genres = genres
-      self.shows = shows
-    
+      self.genres = genres  
+
     def insert(self):
       db.session.add(self)
       db.session.commit()
@@ -79,9 +78,9 @@ class Artist(db.Model):
     genres = db.Column(ARRAY(String))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
-    shows = db.relationship('Show', back_populates='Artist', lazy='dynamic')
+    shows = db.relationship('Show', backref='Artist', lazy='dynamic')
 
-    def __init__(self,name,city,state,phone,genres,image_link,facebook_link, shows):
+    def __init__(self,name,city,state,phone,genres,image_link,facebook_link):
       self.name = name
       self.city = city
       self.state = state
@@ -89,7 +88,6 @@ class Artist(db.Model):
       self.genres = genres
       self.image_link = image_link
       self.facebook_link = facebook_link
-      self.shows = shows
     
     def insert(self):
       db.session.add(self)
@@ -135,6 +133,18 @@ class Show(db.Model):
     def insert(self):
       db.session.add(self)
       db.session.commit()
+
+
+    def details(self):
+      return{
+        'venue_id': self.venue_id,
+        'venue_name': self.Venue.name,
+        'artist_id': self.artist_id,
+        'artist_name': self.Artist.name,
+        'artist_image_link': self.Artist.image_link,
+        'start_time': self.start_time
+      }
+    
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
@@ -721,14 +731,11 @@ def shows():
   # TODO: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
 
-  shows = Show.query.options(joinedload(Artist.id))
+  show_query = Show.query.options(db.joinedload(Show.Venue), db.joinedload(Show.Artist)).all()
 
-  print(shows)
+  data = list(map(Show.details, show_query))
 
-  for show in shows:
-    print(show)
 
-  data = shows
   # data=[{
   #   "venue_id": 1,
   #   "venue_name": "The Musical Hop",
