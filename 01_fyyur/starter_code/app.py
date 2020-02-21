@@ -171,42 +171,6 @@ app.jinja_env.filters['datetime'] = format_datetime
 @app.route('/')
 def index():
 
-# Practice query objects below
-# 
-# 
-# 
-# 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# 
-# 
-# 
-# 
-# 
-# 
-#  Practice query objects above
-
-
-
-
-
-
 
   return render_template('pages/home.html')
 
@@ -270,16 +234,20 @@ def search_venues():
   # seach for Hop should return "The Musical Hop".
   # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
 
+  response = []
 
+  count = 0
 
-  response={
-    "count": 1,
-    "data": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
+  venues_query = Venue.query.filter(Venue.name.like('%' + request.form['search_term'] + '%'))
+
+  for venue in venues.query:
+    count += 1
+
+  response = {
+    "count": count,
+    "data": venues_query
   }
+
   return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
 
 @app.route('/venues/<int:venue_id>')
