@@ -27,6 +27,7 @@ def upgrade():
     sa.Column('genres', sa.ARRAY(sa.String()), nullable=True),
     sa.Column('image_link', sa.String(length=500), nullable=True),
     sa.Column('facebook_link', sa.String(length=120), nullable=True),
+    op.add_column('Artist', sa.Column('availability', sa.ARRAY(sa.String()), nullable=True)),
     sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###

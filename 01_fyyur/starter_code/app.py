@@ -78,9 +78,11 @@ class Artist(db.Model):
     genres = db.Column(ARRAY(String))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
-    shows = db.relationship('Show', backref='Artist', lazy='dynamic')
+    shows = db.relationship('Show', backref='Artist', lazy=True)
+    availability = db.relationship('Availability', backref='Artist', lazy=True)
 
     def __init__(self,name,city,state,phone,genres,image_link,facebook_link):
+
       self.name = name
       self.city = city
       self.state = state
@@ -113,6 +115,25 @@ class Artist(db.Model):
         "image_link": self.image_link,
         "facebook_link": self.facebook_link
       }
+
+class Availability(db.Model):
+    __tablename__ = 'Availability'
+
+    id = db.Column(db.Integer, primary_key=True)
+    artist_id = db.Column(db.Integer, ForeignKey(Artist.id), nullable=True)
+    dates = db.Column(db.ARRAY(db.String))
+    start_time = db.Column(db.ARRAY(db.String))
+    end_time = db.Column(db.ARRAY(db.String))
+
+    def __init__(self,artist_id,dates,start_time,end_time):
+      self.artist_id = artist_id
+      self.dates = dates
+      self.start_time = start_time
+      self.end_time = end_time
+
+    def insert(self):
+      db.session.add(self)
+      db.session.commit()
 
 
 class Show(db.Model):
@@ -560,9 +581,6 @@ def edit_artist(artist_id):
 
   artist = Artist.query.get(artist_id)
 
-  print('DEBUG')
-  print(artist)
-
   if artist:
     form.name.data = artist.name
     form.city.data = artist.city
@@ -681,6 +699,13 @@ def create_artist_submission():
       facebook_link=request.form['facebook_link']
     )
     Artist.insert(new_artist)
+    new_availability = Availability(
+      artist_id=new_artist.id,
+      dates=request.form['dates'].replace(' ','').split(','),
+      start_time=request.form['start_time'].replace(' ','').split(','),
+      end_time=request.form['end_time'].replace(' ','').split(',')
+    )
+    Availability.insert(new_availability)
 
   # on successful db insert, flash success
     flash('Artist ' + request.form['name'] + ' was successfully listed!')
@@ -760,7 +785,8 @@ def create_show_submission():
         start_time=request.form['start_time']
       )
       Show.insert(new_show)
-
+      Show.commit()
+      
   # on successful db insert, flash success
       flash('Show was successfully listed!')
 
